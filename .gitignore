@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 .env
+2_llamaindex-doc-helper/llamaindex-docs/
