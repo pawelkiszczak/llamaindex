@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # Setup UnstructuredReader to read .html files
     parser = UnstructuredReader()
     file_extractor = {".html": parser}
-    data_dir = "llamaindex-docs-tmp"
+    data_dir = "llamaindex-docs"
     input_dir = os.path.join(os.path.dirname(__file__), data_dir)
 
     dir_reader = SimpleDirectoryReader(
@@ -72,9 +72,12 @@ if __name__ == "__main__":
 
     ### INITIALIZE VECTORE STORE OBJECTS
     index_name = os.environ["PINECONE_INDEX_NAME"]
-    pinecone_index = pc.create_index(
-        name=index_name, dimension=1536, metric="cosine", spec=spec
-    )
+
+    # Use this if index on Pinecone is not already created manually
+    # pc.create_index(
+    #     name=index_name, dimension=1536, metric="cosine", spec=spec
+    # )
+    pinecone_index = pc.Index(index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
