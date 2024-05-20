@@ -2,17 +2,35 @@ import os
 from dotenv import load_dotenv
 from pinecone import Pinecone
 
+import streamlit as st
+import time
+
 from llama_index.core import VectorStoreIndex, Settings
+
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.callbacks import LlamaDebugHandler, CallbackManager
 from llama_index.vector_stores.pinecone import PineconeVectorStore
 
+# Load environemtal variables
 load_dotenv()
-pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
-if __name__ == "__main__":
-    print("RAG")
+# Setup Streamlit app view
+st.set_page_config(
+    page_title="Chat with LlamaIndex Docs, powered by LlamaIndex",
+    page_icon="🦙",
+    layout="centered",
+    initial_sidebar_state="auto",
+    menu_items=None,
+)
+
+st.title("Chat with LlamaIndex docs 🦙")
+
+# Methods and functions
+@st.cache_resource(show_spinner=False)
+def get_index() -> VectorStoreIndex:
+
+    pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 
     # Setup Pinecone index and vector_store
     pinecone_index = pc.Index(os.environ["PINECONE_INDEX_NAME"])
@@ -24,20 +42,42 @@ if __name__ == "__main__":
     callback_manager = CallbackManager(handlers=[llama_debug])
     Settings.callback_manager = callback_manager
 
-    # Setup OpenAI
-    Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0)
-    Settings.embed_model = OpenAIEmbedding(model='text-embedding-ada-002', embed_batch_size=100)
+    return index
 
-    # Sample query
-    query = "What is LlamaIndex Query Engine?"
+index = get_index()
 
-    # Setup query_engine
-    query_engine = index.as_query_engine()
-    
-    # Get the response
-    response = query_engine.query(query)
+#####
 
-    # Print the response
-    print(response)
+if 'chat_engine' not in st.session_state.keys():
+    st.session_state.chat_engine = index.as_chat_engine(chat_mode='context', verbose=True)
 
-    pass
+if 'messages' not in st.session_state.keys():
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Ask me a question about LlamaIndex!"
+        }
+    ]
+
+if prompt := st.chat_input("Your question here..."):
+    st.session_state.messages.append({
+        'role': 'user',
+        'content': prompt
+    })
+
+for message in st.session_state.messages:
+    with st.chat_message(message['role']):
+        st.markdown(message['content'])
+
+if st.session_state.messages[-1]['role'] != 'assistant':
+    with st.chat_message('assistant'):
+        with st.spinner('Thinking...'):
+            response = st.session_state.chat_engine.chat(message=prompt)
+            st.markdown(response.response)
+
+            message = {
+                'role': 'assistant',
+                'content': response.response
+            }
+
+            st.session_state.messages.append(message)
