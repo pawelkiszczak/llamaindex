@@ -5,7 +5,8 @@ from llama_index.core import Settings
 from llama_index.llms.openai import OpenAI
 from llama_index.core.agent import ReActAgent
 from llama_index.core.tools import FunctionTool
-
+from llama_index.core.callbacks import LlamaDebugHandler, CallbackManager
+from llama_index.agent.openai import OpenAIAgent
 import subprocess
 
 # Load env variables
@@ -61,9 +62,20 @@ if __name__ == "__main__":
     tool3 = FunctionTool.from_defaults(fn=open_application)
     tool4 = FunctionTool.from_defaults(fn=open_url)
 
-    agent = ReActAgent.from_tools(tools=[tool1, tool2, tool3, tool4], llm=llm, verbose=True)
+    llama_debug = LlamaDebugHandler(print_trace_on_end=True)
+    callback_manager = CallbackManager(handlers=[llama_debug])
 
-    # res = agent.query("Write me a haiku about tennis and then count the characters in it")
+    # agent = ReActAgent.from_tools(tools=[tool1, tool2, tool3, tool4], llm=llm, verbose=True, callback_manager=callback_manager)
+    agent = OpenAIAgent.from_tools(
+        tools=[tool1, tool2, tool3, tool4],
+        llm=llm,
+        verbose=True,
+        callback_manager=callback_manager,
+    )
+
+    res = agent.query(
+        "Write me a haiku about tennis and then count the characters in it"
+    )
     # res = agent.query("Open Discord in my computer")
-    res = agent.query("Open URL: https://www.x-kom.pl in Chrome")
+    res = agent.query("Open URL: https://www.x-kom.pl in Safari")
     print(res)
