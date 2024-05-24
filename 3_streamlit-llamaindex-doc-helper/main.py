@@ -63,7 +63,11 @@ embed_model = OpenAIEmbedding(model="text-embedding-ada-002")
 
 if "chat_engine" not in st.session_state:
     postprocessor = SentenceEmbeddingOptimizer(
-        embed_model=embed_model, percentile_cutoff=0.2, threshold_cutoff=0.7, context_after=0, context_before=0
+        embed_model=embed_model,
+        percentile_cutoff=0.2,
+        threshold_cutoff=0.7,
+        context_after=0,
+        context_before=0,
     )
     st.session_state.chat_engine = index.as_chat_engine(
         chat_mode="best",

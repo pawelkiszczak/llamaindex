@@ -26,14 +26,16 @@ if __name__ == "__main__":
 
     # Setup OpenAI
     Settings.llm = OpenAI(model="gpt-3.5-turbo", temperature=0)
-    Settings.embed_model = OpenAIEmbedding(model='text-embedding-ada-002', embed_batch_size=100)
+    Settings.embed_model = OpenAIEmbedding(
+        model="text-embedding-ada-002", embed_batch_size=100
+    )
 
     # Sample query
     query = "What is LlamaIndex Query Engine?"
 
     # Setup query_engine
     query_engine = index.as_query_engine()
-    
+
     # Get the response
     response = query_engine.query(query)
 

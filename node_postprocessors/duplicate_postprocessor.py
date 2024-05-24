@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
+
 class DuplicateRemoverNodePostprocessor:
     """Node postprocessor."""
 
